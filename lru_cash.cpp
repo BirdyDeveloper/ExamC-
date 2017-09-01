@@ -79,8 +79,25 @@ public:
         // Переход к элементу со следующим по величине ключом.
         // Декремент итератора begin() неопределен.
         // Декремент невалидного итератора неопределен.
-        iterator& operator--();
-        iterator operator--(int);
+        iterator& operator--() {
+            if (v->left) {
+                v = v->left;
+                while (v->right) { v = v->right; }
+                return *this;
+            }
+            node* cur = v->parent;
+            while (cur && v == cur->left) {
+                v = cur;
+                cur = cur->parent;
+            }
+            v = cur;
+            return *this;
+        }
+        iterator operator--(int) {
+            iterator res = *this;
+            --*this;
+            return res;
+        }
         
         friend bool operator==(const iterator& a, const iterator& b) {
             return a.v == b.v;
