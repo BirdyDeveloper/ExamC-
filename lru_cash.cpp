@@ -130,6 +130,9 @@ public:
         --(*this);
         return *this;
     }
+
+    friend bool operator==(iterator, iterator);
+    friend bool operator!=(iterator, iterator);
 };
 
 // Сравнение. Итераторы считаются эквивалентными если они ссылаются на один и тот же элемент.
