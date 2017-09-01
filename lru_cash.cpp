@@ -82,8 +82,8 @@ public:
     iterator(iterator const& other) {
         this->value = other.value;
     }
-    
-    
+
+
 
     // Переход к элементу со следующим по величине ключом.
     // Инкремент итератора end() неопределен.
@@ -154,6 +154,30 @@ lru_cache::iterator lru_cache::begin() const {
 
 lru_cache::iterator lru_cache::end() const {
     return iterator(begin_->prev);
+}
+
+lru_cache::iterator lru_cache::find(key_type key) {
+        node *cur = root_;
+        while (cur) {
+            if (cur->key_mapped.first < key) cur = cur->right;
+            else if (cur->key_mapped.first > key) cur = cur->left;
+            else break;
+        }
+
+        if (!cur) {
+//            return end();
+        }
+
+        cur->prev->next = cur->next;
+        cur->next->prev = cur->prev;
+
+        node *&last = begin_->prev;
+        cur->prev = last;
+        last->next = cur;
+        cur->next = begin_;
+        begin_->prev = cur;
+
+        return iterator(cur);
 }
 
 int main() {
