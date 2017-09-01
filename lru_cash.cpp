@@ -35,21 +35,27 @@ template<typename T, typename U>
 struct lru_cache
 {
 private:
+    // запрещаем конструктор копирования и оператор присваивания
+    lru_cache(lru_cache const&);
+    lru_cache& operator=(lru_cache const&);
+
     // (left, right, parent) - элемент, следующий за маскимальным ключом
     // (next, prev) - конец очереди
     node* end_;
     size_t sz, capacity;
     void connect(node* v) {
-        v->prev->next = v->next;
-        v->next->prev = v->prev;
-    }
-    void move_to_end(node* v) {
-        v->prev->next = v->next;
-        v->next->prev = v->prev;
         end_->prev->next = v;
         v->prev = end_->prev;
         end_->prev = v;
         v->next = end_;
+    }
+    void disconnect(node* v) {
+        v->prev->next = v->next;
+        v->next->prev = v->prev;
+    }
+    void move_to_end(node* v) {
+        disconnect(v);
+        connect(v);
     }
 public:
     // Вы можете определить эти тайпдефы по вашему усмотрению.
@@ -137,7 +143,7 @@ public:
     };
 
     // Создает пустой lru_cache с указанной capacity.
-    lru_cache(size_t capacity) : sz(0), capacity(capacity) {
+    explicit lru_cache(size_t capacity = 3) : sz(0), capacity(capacity) {
         end_ = new node;
         end_->prev = end_->next = end_;
     }
@@ -176,16 +182,46 @@ public:
     // использованный элемент удаляется. Все итераторы на него инвалидируется.
     // Вставленный либо найденный с помощью этой функции элемент помечается как наиболее поздно
     // использованный.
-    std::pair<iterator, bool> insert(value_type v); /*{
-        /*
-        iterator find_it = find(v.first);
+    std::pair<iterator, bool> insert(value_type val) {
+        iterator find_it = find(val.first);
         if (find_it != end())
             return std::make_pair(find_it, false);
-        if (sz == capacity) {
-            
+        if (sz == 0) { // новый корень (capacity > 0)
+            node* newNode = new node_with_data<T, U>(val);
+            newNode->parent = end_;
+            end_->left = newNode;
+            ++sz;
+            connect(newNode);
+            return std::make_pair(iterator(newNode), true);
         }
-        
-    } */
+        if (sz == capacity) {
+            erase(iterator(end_->prev));
+        }
+        //else if (sz < capacity) {
+            ++sz;
+            node_with_data<T, U>* cur = static_cast<node_with_data<T, U>*>(end_->left);
+            node* newNode = new node_with_data<T, U>(val);
+            while (cur) {
+                if (val.first > cur->val.first) {
+                    if (cur->right) { cur = cur->right; }
+                    else {
+                        newNode->parent = cur;
+                        cur->right = newNode;
+                        break;
+                    }
+                } else { // val.first < cur->val.first
+                    if (cur->left) { cur = cur->left; }
+                    else {
+                        newNode->parent = cur;
+                        cur->left = newNode;
+                        break;
+                    }
+                }
+            }
+            connect(newNode);
+            return std::make_pair(iterator(newNode), true);
+        //}
+    }
 
     // Удаление элемента.
     // Все итераторы на указанный элемент инвалидируются.
@@ -217,7 +253,8 @@ public:
             nextNode->parent = v->parent;
         }
         v->left = v->right = nullptr;
-        connect(v);
+        --sz;
+        disconnect(v);
         delete v;
     }
 
