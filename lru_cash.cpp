@@ -86,8 +86,30 @@ public:
     // Переход к элементу со следующим по величине ключом.
     // Декремент итератора begin() неопределен.
     // Декремент невалидного итератора неопределен.
-    iterator& operator--();
-    iterator operator--(int);
+    iterator& operator--() {
+        if (value->left) {
+            while (value->right) { value = value->right; }
+        }
+        node* cur = value->parent;
+        while (cur && value == cur->left) {
+            value = cur;
+            cur = cur->parent;
+        }
+        value = cur;
+        return *this;
+    }
+    iterator operator--(int) {
+        if (value->left) {
+            while (value->right) { value = value->right; }
+        }
+        node* cur = value->parent;
+        while (cur && value == cur->left) {
+            value = cur;
+            cur = cur->parent;
+        }
+        value = cur;
+        return *this;
+    }
 };
 
 // Сравнение. Итераторы считаются эквивалентными если они ссылаются на один и тот же элемент.
