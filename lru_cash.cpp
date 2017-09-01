@@ -98,18 +98,20 @@ public:
             --*this;
             return res;
         }
-        
+
         friend bool operator==(const iterator& a, const iterator& b) {
             return a.v == b.v;
         }
         friend bool operator!=(const iterator& a, const iterator& b) {
             return a.v != b.v;
         }
-        
-        friend lru_cache;
-        
+
+
     private:
         node* v;
+        explicit iterator(node* v) : v(v) {}
+        
+        friend lru_cache;
     };
 
     // Создает пустой lru_cache с указанной capacity.
