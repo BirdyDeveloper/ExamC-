@@ -202,6 +202,13 @@ public:
         } else {
             newNode = new node_with_data<T, U>(val);
         }
+        if (sz == 0) {
+            newNode->parent = end_;
+            end_->left = newNode;
+            ++sz;
+            connect(newNode);
+            return std::make_pair(iterator(newNode), true);
+        }
         ++sz;
         node_with_data<T, U>* cur = static_cast<node_with_data<T, U>*>(end_->left);
         while (cur) {
