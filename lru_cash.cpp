@@ -35,9 +35,18 @@ template<typename T, typename U>
 struct lru_cache
 {
 private:
-    node* end_; // Дерево подвешено за эту вершину, конец кэша
-    node* queue_end_; // Конец очереди
+    // (left, right, parent) - элемент, следующий за маскимальным ключом
+    // (next, prev) - конец очереди
+    node* end_;
     size_t sz, capacity;
+    void move_to_end(node* v) {
+        v->prev->next = v->next;
+        v->next->prev = v->prev;
+        end_->prev->next = v;
+        v->prev = end_->prev;
+        end_->prev = v;
+        v->next = end_;
+    }
 public:
     // Вы можете определить эти тайпдефы по вашему усмотрению.
     typedef T key_type;
@@ -125,7 +134,7 @@ public:
 
     // Создает пустой lru_cache с указанной capacity.
     lru_cache(size_t capacity) : sz(0), capacity(capacity) {
-        end_ = queue_end_ = new node;
+        end_ = new node;
         end_->prev = end_->next = end_;
     }
 
@@ -139,7 +148,20 @@ public:
     // Поиск элемента.
     // Возвращает итератор на элемент найденный элемент, либо end().
     // Если элемент найден, он помечается как наиболее поздно использованный.
-    iterator find(key_type);
+    iterator find(key_type key) {
+        if (!end_->left)
+            return end();
+        node_with_data<T, U>* cur = static_cast<node_with_data<T, U>*>(end_->left);
+        while (cur) {
+            if (cur->key_mapped.first < key) { cur = cur->right; }
+            else if (cur->key_mapped.first > key) { cur = cur->left; }
+            else {
+                move_to_end(cur);
+                return iterator(cur);
+            }
+        }
+        return end();
+    }
 
     // Вставка элемента.
     // 1. Если такой ключ уже присутствует, вставка не производиться, возвращается итератор
