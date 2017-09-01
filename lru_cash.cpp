@@ -13,6 +13,11 @@ public:
 
     node*       next;
     node*       prev;
+    
+    virtual ~node() {
+        delete left;
+        delete right;
+    }
 };
 
 template<typename T, typename U>
@@ -30,7 +35,8 @@ template<typename T, typename U>
 struct lru_cache
 {
 private:
-    node* end_; // Наибольший по значению элемент
+    node* end_; // Дерево подвешено за эту вершину, конец кэша
+    node* queue_end_; // Конец очереди
     size_t sz, capacity;
 public:
     // Вы можете определить эти тайпдефы по вашему усмотрению.
@@ -99,6 +105,9 @@ public:
             return res;
         }
 
+        // Сравнение. Итераторы считаются эквивалентными если они ссылаются на один и тот же элемент.
+        // Сравнение с невалидным итератором не определено.
+        // Сравнение итераторов двух разных контейнеров не определено.
         friend bool operator==(const iterator& a, const iterator& b) {
             return a.v == b.v;
         }
@@ -115,12 +124,17 @@ public:
     };
 
     // Создает пустой lru_cache с указанной capacity.
-    lru_cache(size_t capacity);
+    lru_cache(size_t capacity) : sz(0), capacity(capacity) {
+        end_ = queue_end_ = new node;
+        end_->prev = end_->next = end_;
+    }
 
     // Деструктор. Вызывается при удалении объектов lru_cache.
     // Инвалидирует все итераторы ссылающиеся на элементы этого lru_cache
     // (включая итераторы ссылающиеся на элементы следующие за последними).
-    ~lru_cache();
+    ~lru_cache() {
+        delete end_;
+    }
 
     // Поиск элемента.
     // Возвращает итератор на элемент найденный элемент, либо end().
@@ -143,14 +157,16 @@ public:
     void erase(iterator);
 
     // Возващает итератор на элемент с минимальный ключом.
-    iterator begin() const;
+    iterator begin() const {
+        node* cur = end_;
+        while (cur->left) { cur = cur->left; }
+        return iterator(cur);
+    }
     // Возващает итератор на элемент следующий за элементом с максимальным ключом.
-    iterator end() const;
+    iterator end() const {
+        return iterator(end_);
+    }
 };
-
-// Сравнение. Итераторы считаются эквивалентными если они ссылаются на один и тот же элемент.
-// Сравнение с невалидным итератором не определено.
-// Сравнение итераторов двух разных контейнеров не определено.
 
 int main() {
     return 0;
