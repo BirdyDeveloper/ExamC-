@@ -48,8 +48,8 @@ private:
     {
     public:
         node() {}
-        node(key_type key, mapped_type mapped) :
-                key_mapped(std::make_pair(key, mapped)), left(nullptr), right(nullptr),
+        node(value_type key_mapped) :
+                key_mapped(key_mapped), left(nullptr), right(nullptr),
                 parent(nullptr), next(nullptr), prev(nullptr) {}
         value_type key_mapped;
 
@@ -69,8 +69,7 @@ struct lru_cache::iterator
 private:
     node* value;
 public:
-    //lru_cache::iterator() : value(nullptr) {}
-    //lru_cache::iterator(lru_cache::value_type x) : value(x.first, x.second) {}
+    iterator() : value(nullptr) {}
     // Элемент на который сейчас ссылается итератор.
     // Разыменование итератора end() неопределено.
     // Разыменование невалидного итератора неопределено.
