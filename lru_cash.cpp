@@ -135,8 +135,12 @@ public:
 // Сравнение. Итераторы считаются эквивалентными если они ссылаются на один и тот же элемент.
 // Сравнение с невалидным итератором не определено.
 // Сравнение итераторов двух разных контейнеров не определено.
-bool operator==(lru_cache::iterator, lru_cache::iterator);
-bool operator!=(lru_cache::iterator, lru_cache::iterator);
+bool operator==(lru_cache::iterator a, lru_cache::iterator b) {
+    return a.value == b.value;
+}
+bool operator!=(lru_cache::iterator a, lru_cache::iterator b) {
+    return !(a == b);
+}
 
 int main() {
     return 0;
