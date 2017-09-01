@@ -114,6 +114,7 @@ public:
         if (value->left) {
             value = value->left;
             while (value->right) { value = value->right; }
+            return *this;
         }
         node* cur = value->parent;
         while (cur && value == cur->left) {
