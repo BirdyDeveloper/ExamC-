@@ -148,6 +148,14 @@ bool operator!=(lru_cache::iterator a, lru_cache::iterator b) {
     return !(a == b);
 }
 
+lru_cache::iterator lru_cache::begin() const {
+    return iterator(begin_);
+}
+
+lru_cache::iterator lru_cache::end() const {
+    return iterator(begin_->prev);
+}
+
 int main() {
     return 0;
 }
