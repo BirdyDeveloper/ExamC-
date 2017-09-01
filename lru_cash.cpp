@@ -12,7 +12,7 @@ public:
     struct iterator;
 
     // Создает пустой lru_cache с указанной capacity.
-    lru_cache(size_t capacity);
+    lru_cache(size_t capacity) : sz(0), capacity(capacity), root_(nullptr), begin_(nullptr) {}
 
     // Деструктор. Вызывается при удалении объектов lru_cache.
     // Инвалидирует все итераторы ссылающиеся на элементы этого lru_cache
@@ -61,6 +61,8 @@ private:
         node*       prev;
     };
     node *root_, *begin_;
+    size_t sz; // current size of lru_cache
+    size_t capacity; // maximal size
     friend iterator;
 };
 
