@@ -70,6 +70,7 @@ private:
     node* value;
 public:
     iterator() : value(nullptr) {}
+    iterator(node* value) : value(value) {}
     // Элемент на который сейчас ссылается итератор.
     // Разыменование итератора end() неопределено.
     // Разыменование невалидного итератора неопределено.
@@ -81,6 +82,8 @@ public:
     iterator(iterator const& other) {
         this->value = other.value;
     }
+    
+    
 
     // Переход к элементу со следующим по величине ключом.
     // Инкремент итератора end() неопределен.
