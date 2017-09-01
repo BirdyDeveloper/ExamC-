@@ -186,14 +186,6 @@ public:
         iterator find_it = find(val.first);
         if (find_it != end())
             return std::make_pair(find_it, false);
-        if (sz == 0) { // новый корень (capacity > 0)
-            node* newNode = new node_with_data<T, U>(val);
-            newNode->parent = end_;
-            end_->left = newNode;
-            ++sz;
-            connect(newNode);
-            return std::make_pair(iterator(newNode), true);
-        }
         node_with_data<T, U>* newNode;
         if (sz == capacity) {
             newNode = static_cast<node_with_data<T, U>*>(end_->next);
@@ -285,7 +277,7 @@ void print(lru_cache<int, int> const& c) {
 }
 
 int main() {
-    lru_cache<int, int> c(1);
+    lru_cache<int, int> c;
     int x, y;
     while (true) {
         std::cin >> x >> y;
