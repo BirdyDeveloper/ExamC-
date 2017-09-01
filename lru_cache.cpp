@@ -194,44 +194,45 @@ public:
             connect(newNode);
             return std::make_pair(iterator(newNode), true);
         }
+        node_with_data<T, U>* newNode;
         if (sz == capacity) {
-            erase(iterator(end_->next));
+            newNode = static_cast<node_with_data<T, U>*>(end_->next);
+            erase(iterator(newNode), false); // не освобождаем память, а переиспользуем newNode
+            newNode->val = val;
+        } else {
+            newNode = new node_with_data<T, U>(val);
         }
-        //else if (sz < capacity) {
-            ++sz;
-            node_with_data<T, U>* cur = static_cast<node_with_data<T, U>*>(end_->left);
-            node* newNode = new node_with_data<T, U>(val);
-            while (cur) {
-                if (val.first > cur->val.first) {
-                    if (cur->right) { cur = static_cast<node_with_data<T, U>*>(cur->right); }
-                    else {
-                        newNode->parent = cur;
-                        cur->right = newNode;
-                        break;
-                    }
-                } else { // val.first < cur->val.first
-                    if (cur->left) { cur = static_cast<node_with_data<T, U>*>(cur->left); }
-                    else {
-                        newNode->parent = cur;
-                        cur->left = newNode;
-                        break;
-                    }
+        ++sz;
+        node_with_data<T, U>* cur = static_cast<node_with_data<T, U>*>(end_->left);
+        while (cur) {
+            if (val.first > cur->val.first) {
+                if (cur->right) { cur = static_cast<node_with_data<T, U>*>(cur->right); }
+                else {
+                    newNode->parent = cur;
+                    cur->right = newNode;
+                    break;
+                }
+            } else { // val.first < cur->val.first
+                if (cur->left) { cur = static_cast<node_with_data<T, U>*>(cur->left); }
+                else {
+                    newNode->parent = cur;
+                    cur->left = newNode;
+                    break;
                 }
             }
-            connect(newNode);
-            return std::make_pair(iterator(newNode), true);
-        //}
+        }
+        connect(newNode);
+        return std::make_pair(iterator(newNode), true);
     }
 
     // Удаление элемента.
     // Все итераторы на указанный элемент инвалидируются.
-    void erase(iterator it) {
+    void erase(iterator it, bool del = true) {
         node* v = it.v;
         node* p = v->parent;
         if (v->left == nullptr && v->right == nullptr) {
             if (p->left == v) { p->left = nullptr; }
             else { p->right = nullptr; }
-            
         } else if (v->left == nullptr || v->right == nullptr) {
             if (v->left == nullptr) {
                 if (p->left == v) { p->left = v->right; }
@@ -255,7 +256,7 @@ public:
         v->left = v->right = nullptr;
         --sz;
         disconnect(v);
-        delete v;
+        if (del) { delete v; }
     }
 
     // Возващает итератор на элемент с минимальный ключом.
@@ -277,15 +278,13 @@ void print(lru_cache<int, int> const& c) {
 }
 
 int main() {
-    lru_cache<int, int> c;
-    c.insert({5, 10});
-    print(c);
-    c.insert({7, 3});
-    print(c);
-    c.insert({12, 4});
-    print(c);
-    c.insert({30, 239});
-    print(c);
+    lru_cache<int, int> c(1);
+    int x, y;
+    while (true) {
+        std::cin >> x >> y;
+        c.insert({x, y});
+        print(c);
+    }
     return 0;
 }
 
