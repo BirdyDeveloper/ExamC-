@@ -182,6 +182,14 @@ lru_cache::iterator lru_cache::find(key_type key) {
         return iterator(cur);
 }
 
+void lru_cache::erase(iterator) {}
+
+lru_cache::~lru_cache() {
+    while (sz > 0) {
+        erase(begin());
+    }
+}
+
 int main() {
     return 0;
 }
