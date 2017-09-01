@@ -39,6 +39,10 @@ private:
     // (next, prev) - конец очереди
     node* end_;
     size_t sz, capacity;
+    void connect(node* v) {
+        v->prev->next = v->next;
+        v->next->prev = v->prev;
+    }
     void move_to_end(node* v) {
         v->prev->next = v->next;
         v->next->prev = v->prev;
@@ -172,11 +176,50 @@ public:
     // использованный элемент удаляется. Все итераторы на него инвалидируется.
     // Вставленный либо найденный с помощью этой функции элемент помечается как наиболее поздно
     // использованный.
-    std::pair<iterator, bool> insert(value_type);
+    std::pair<iterator, bool> insert(value_type v); /*{
+        /*
+        iterator find_it = find(v.first);
+        if (find_it != end())
+            return std::make_pair(find_it, false);
+        if (sz == capacity) {
+            
+        }
+        
+    } */
 
     // Удаление элемента.
     // Все итераторы на указанный элемент инвалидируются.
-    void erase(iterator);
+    void erase(iterator it) {
+        node* v = *it;
+        node* p = v->parent;
+        if (v->left == nullptr && v->right == nullptr) {
+            if (p->left == v) { p->left = nullptr; }
+            else { p->right = nullptr; }
+            
+        } else if (v->left == nullptr || v->right == nullptr) {
+            if (v->left == nullptr) {
+                if (p->left == v) { p->left = v->right; }
+                else { p->right = v->right; }
+                v->right->parent = p;
+            } else {
+                if (p->left == v) { p->left = v->left; }
+                else { p->right = v->left; }
+                v->left->parent = p;
+            }
+        } else {
+            node* nextNode = *(++it);
+            if (nextNode->parent->left == nextNode) { nextNode->parent->left = nextNode->right; }
+            else { nextNode->parent->right = nextNode->right; }
+            if (nextNode->right)
+                nextNode->right->parent = nextNode->parent;
+            nextNode->left = v->left;
+            nextNode->right = v->right;
+            nextNode->parent = v->parent;
+        }
+        v->left = v->right = nullptr;
+        connect(v);
+        delete v;
+    }
 
     // Возващает итератор на элемент с минимальный ключом.
     iterator begin() const {
