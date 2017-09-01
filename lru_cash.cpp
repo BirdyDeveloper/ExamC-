@@ -73,6 +73,7 @@ public:
     // Элемент на который сейчас ссылается итератор.
     // Разыменование итератора end() неопределено.
     // Разыменование невалидного итератора неопределено.
+
     value_type const& operator*() const {
         return value->key_mapped;
     }
@@ -80,8 +81,17 @@ public:
     // Переход к элементу со следующим по величине ключом.
     // Инкремент итератора end() неопределен.
     // Инкремент невалидного итератора неопределен.
-    iterator& operator++();
-    iterator operator++(int);
+    iterator& operator++() {
+        value = value->right;
+        return *this;
+    }
+
+    iterator operator++(int) {
+        iterator tmp;
+        tmp = value;
+        ++(*this);
+        return tmp;
+    }
 
     // Переход к элементу со следующим по величине ключом.
     // Декремент итератора begin() неопределен.
@@ -99,3 +109,4 @@ bool operator!=(lru_cache::iterator, lru_cache::iterator);
 int main() {
     return 0;
 }
+
