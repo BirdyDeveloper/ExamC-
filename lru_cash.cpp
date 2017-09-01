@@ -2,23 +2,11 @@
 
 struct lru_cache
 {
+public:
     // Вы можете определить эти тайпдефы по вашему усмотрению.
     typedef int key_type;
     typedef int mapped_type;
     typedef std::pair<key_type, mapped_type> value_type;
-    
-    struct node
-    {
-        key_type    key;
-        mapped_type mapped;
-
-        node*       left;
-        node*       right;
-        node*       parent;
-
-        node*       next;
-        node*       prev;
-    };
 
     // Bidirectional iterator.
     struct iterator;
@@ -55,6 +43,20 @@ struct lru_cache
     iterator begin() const;
     // Возващает итератор на элемент следующий за элементом с максимальным ключом.
     iterator end() const;
+private:
+    struct node
+    {
+        key_type    key;
+        mapped_type mapped;
+
+        node*       left;
+        node*       right;
+        node*       parent;
+
+        node*       next;
+        node*       prev;
+    };
+    node *root, *begin;
 };
 
 struct lru_cache::iterator
