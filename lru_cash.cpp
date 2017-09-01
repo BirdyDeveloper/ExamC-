@@ -163,8 +163,8 @@ public:
             return end();
         node_with_data<T, U>* cur = static_cast<node_with_data<T, U>*>(end_->left);
         while (cur) {
-            if (cur->key_mapped.first < key) { cur = cur->right; }
-            else if (cur->key_mapped.first > key) { cur = cur->left; }
+            if (cur->val.first < key) { cur = static_cast<node_with_data<T, U>*>(cur->right); }
+            else if (cur->val.first > key) { cur = static_cast<node_with_data<T, U>*>(cur->left); }
             else {
                 move_to_end(cur);
                 return iterator(cur);
@@ -195,7 +195,7 @@ public:
             return std::make_pair(iterator(newNode), true);
         }
         if (sz == capacity) {
-            erase(iterator(end_->prev));
+            erase(iterator(end_->next));
         }
         //else if (sz < capacity) {
             ++sz;
@@ -203,14 +203,14 @@ public:
             node* newNode = new node_with_data<T, U>(val);
             while (cur) {
                 if (val.first > cur->val.first) {
-                    if (cur->right) { cur = cur->right; }
+                    if (cur->right) { cur = static_cast<node_with_data<T, U>*>(cur->right); }
                     else {
                         newNode->parent = cur;
                         cur->right = newNode;
                         break;
                     }
                 } else { // val.first < cur->val.first
-                    if (cur->left) { cur = cur->left; }
+                    if (cur->left) { cur = static_cast<node_with_data<T, U>*>(cur->left); }
                     else {
                         newNode->parent = cur;
                         cur->left = newNode;
@@ -226,7 +226,7 @@ public:
     // Удаление элемента.
     // Все итераторы на указанный элемент инвалидируются.
     void erase(iterator it) {
-        node* v = *it;
+        node* v = it.v;
         node* p = v->parent;
         if (v->left == nullptr && v->right == nullptr) {
             if (p->left == v) { p->left = nullptr; }
@@ -243,7 +243,7 @@ public:
                 v->left->parent = p;
             }
         } else {
-            node* nextNode = *(++it);
+            node* nextNode = (++it).v;
             if (nextNode->parent->left == nextNode) { nextNode->parent->left = nextNode->right; }
             else { nextNode->parent->right = nextNode->right; }
             if (nextNode->right)
@@ -270,7 +270,22 @@ public:
     }
 };
 
+void print(lru_cache<int, int> const& c) {
+    for (auto it = c.begin(); it != c.end(); ++it)
+        printf("[%d, %d] ", (*it).first, (*it).second);
+    printf("\n");
+}
+
 int main() {
+    lru_cache<int, int> c;
+    c.insert({5, 10});
+    print(c);
+    c.insert({7, 3});
+    print(c);
+    c.insert({12, 4});
+    print(c);
+    c.insert({30, 239});
+    print(c);
     return 0;
 }
 
