@@ -78,17 +78,31 @@ public:
         return value->key_mapped;
     }
 
+    iterator(iterator const& other) {
+        this->value = other.value;
+    }
+
     // Переход к элементу со следующим по величине ключом.
     // Инкремент итератора end() неопределен.
     // Инкремент невалидного итератора неопределен.
     iterator& operator++() {
-        value = value->right;
+        if (value->right) {
+            value = value->right;
+            while (value->left) {
+                value = value->left;
+            }
+            return *this;
+        }
+        value = value->parent;
+        if (!value) return *this;
+        while (value->right) {
+            value = value->right;
+        }
         return *this;
     }
 
     iterator operator++(int) {
-        iterator tmp;
-        tmp = value;
+        iterator tmp = *this;
         ++(*this);
         return tmp;
     }
@@ -98,6 +112,7 @@ public:
     // Декремент невалидного итератора неопределен.
     iterator& operator--() {
         if (value->left) {
+            value = value->left;
             while (value->right) { value = value->right; }
         }
         node* cur = value->parent;
@@ -108,16 +123,10 @@ public:
         value = cur;
         return *this;
     }
+
     iterator operator--(int) {
-        if (value->left) {
-            while (value->right) { value = value->right; }
-        }
-        node* cur = value->parent;
-        while (cur && value == cur->left) {
-            value = cur;
-            cur = cur->parent;
-        }
-        value = cur;
+        iterator tmp = *this;
+        --(*this);
         return *this;
     }
 };
@@ -131,4 +140,7 @@ bool operator!=(lru_cache::iterator, lru_cache::iterator);
 int main() {
     return 0;
 }
+
+
+
 
