@@ -56,8 +56,25 @@ public:
         // Переход к элементу со следующим по величине ключом.
         // Инкремент итератора end() неопределен.
         // Инкремент невалидного итератора неопределен.
-        iterator& operator++();
-        iterator operator++(int);
+        iterator& operator++() {
+            if (v->right) {
+                v = v->right;
+                while (v->left) { v = v->left; }
+                return *this;
+            }
+            node* cur = v->parent;
+            while (cur && v == cur->right) {
+                v = cur;
+                cur = cur->parent;
+            }
+            v = cur;
+            return *this;
+        }
+        iterator operator++(int) {
+            iterator res = *this;
+            ++*this;
+            return res;
+        }
 
         // Переход к элементу со следующим по величине ключом.
         // Декремент итератора begin() неопределен.
