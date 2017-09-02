@@ -82,13 +82,15 @@ public:
     private:
         node_base* v;
         bool valid;
-        explicit iterator(node_base* v) : v(v), valid(true) {
+        list<T>* parent;
+        explicit iterator(node_base* v, list<T>* parent) : v(v), valid(true), parent(parent) {
             v->its.push_back(this);
         }
 
         void invalid() {
             valid = false;
             v = nullptr;
+            parent = nullptr;
         }
 
         friend list;
@@ -139,7 +141,7 @@ public:
         typedef T const & reference;
         typedef std::bidirectional_iterator_tag iterator_category;
 
-        const_iterator(iterator it) : v(it.v), valid(it.valid) {}
+        const_iterator(iterator it) : v(it.v), valid(it.valid), parent(it.parent) {}
         ~const_iterator() {
             if (valid) {
                 std::vector<const_iterator*> new_cits;
@@ -152,15 +154,15 @@ public:
     private:
         node_base * v;
         bool valid;
-        explicit const_iterator(node_base * v) : v(v), valid(true) {
+        list<T>* parent;
+        explicit const_iterator(node_base * v) : v(v), valid(true), parent(parent) {
             v->cits.push_back(this);
         }
-
         void invalid() {
             valid = false;
             v = nullptr;
+            parent = nullptr;
         }
-
         friend list;
     };
 
@@ -229,22 +231,22 @@ public:
         erase(begin());
     }
     T& front() {
-        iterator it(end_);
+        iterator it(end_, this);
         ++it;
         return *it;
     }
     T const& front() const {
-        const_iterator it(end_);
+        const_iterator it(end_, this);
         ++it;
         return *it;
     }
 
     //iterator
     iterator begin() {
-        return iterator(end_->r);
+        return iterator(end_->r, this);
     }
     iterator end() {
-        return iterator(end_);
+        return iterator(end_, this);
     }
     const_iterator begin() const {
         return const_iterator(end_->r);
@@ -253,7 +255,7 @@ public:
         return const_iterator(end_);
     }
     reverse_iterator rbegin() {
-        return reverse_iterator(end());
+        return reverse_iterator(end(), this);
     }
     reverse_iterator rend() {
         return reverse_iterator(begin());
@@ -266,6 +268,7 @@ public:
     }
 
     iterator insert(const_iterator it, T const& val) {
+        assert(it.parent == this);
         if (empty()) {
             node_base* newNode = new node(val);
             newNode->r = end_;
@@ -280,10 +283,10 @@ public:
         newNode->l = prev;
         prev->r = newNode;
         next->l = newNode;
-        return iterator(newNode);
+        return iterator(newNode, this);
     }
     iterator erase(const_iterator it) {
-        assert(it != end());
+        assert(it.parent == this && it != end());
         node_base* prev = it.v->l, *next = it.v;
         if (next->r == end_ && next->l == end_) {
             end_->r = end_;
@@ -294,9 +297,17 @@ public:
             next->r->l = next->l;
             delete next;
         }
-        return iterator(prev->r);
+        return iterator(prev->r, this);
     }
     void splice(const_iterator pos, list<T>& other, const_iterator first, const_iterator last) {
+        assert(pos.parent == this);
+        for (const_iterator it = first; it != last; ++it) {
+            assert(it.parent == &other && it != pos);
+            for (size_t i = 0; i < it.v->its.size(); ++i)
+                it.v->its[i]->parent = &other;
+            for (size_t i = 0; i < it.v->cits.size(); ++i)
+                it.v->cits[i]->parent = &other;
+        }
         node_base *prev1 = first.v->l;
         node_base *next1 = last.v;
         node_base *prev2 = pos.v->l;
@@ -335,20 +346,15 @@ void print(list<T>& l) {
 }
 
 int main() {
-    list<int> x;
-    x.push_back(1);
-    x.push_back(2);
-    x.push_back(3);
-    x.push_back(4);
-    x.push_back(5);
-    x.push_back(6);
-    x.push_back(7);
-    x.push_back(8);
-    list<int>::iterator it = x.begin();
-    x.push_front(9);
+    list<int> x, y;
+    for (int i = 1; i < 11; ++i)
+        x.push_back(i);
+    for (int i = 11; i < 21; ++i)
+        y.push_back(i);
     print(x);
-    x.erase(it);
+    print(y);
+    x.splice(++++x.begin(), y, ++y.begin(), --y.end());
     print(x);
-    ++it;
+    print(y);
     return 0;
 }
