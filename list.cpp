@@ -1,34 +1,36 @@
 #include <bits/stdc++.h>
 
-struct node_base {
-    node_base *l, *r;
-    node_base () : l(nullptr), r(nullptr) {}
-    node_base (node_base *l, node_base *r) : l(l), r(r) {}
-    virtual ~node_base() {}
-};
-
-template<typename T>
-struct node : node_base {
-    T val;
-    node(T const& val) : val(val) {}
-};
-
 template<typename T>
 struct list {
+
+private:
+    struct node_base {
+        node_base *l, *r;
+        node_base () : l(nullptr), r(nullptr) {}
+        node_base (node_base *l, node_base *r) : l(l), r(r) {}
+        virtual ~node_base() {}
+    };
+
+    struct node : node_base {
+        T val;
+        node(T const& val) : val(val) {}
+    };
 public:
 
     struct const_iterator;
+    struct iterator;
+
     struct iterator {
     public:
         iterator& operator++() {
             assert(v);
-            assert(dynamic_cast<node<T>*>(v) != nullptr);
+            assert(dynamic_cast<node*>(v) != nullptr);
             v = v->r;
             return *this;
         }
         iterator& operator--() {
             assert(v);
-            assert(dynamic_cast<node<T>*>(v->l) != nullptr);
+            assert(dynamic_cast<node*>(v->l) != nullptr);
             v = v->l;
             return *this;
         }
@@ -45,7 +47,7 @@ public:
 
         T & operator*() const {
             assert(v);
-            node<T>* cur = dynamic_cast<node<T>*>(v);
+            node* cur = dynamic_cast<node*>(v);
             assert(cur);
             return cur->val;
         }
@@ -72,14 +74,14 @@ public:
     struct const_iterator {
     public:
         const_iterator& operator++() {
-            assert(v);
-            assert(dynamic_cast<node<T>*>(v) != nullptr);
+            assert(v);  
+            assert(dynamic_cast<node*>(v) != nullptr);
             v = v->r;
             return *this;
         }
         const_iterator& operator--() {
             assert(v);
-            assert(dynamic_cast<node<T>*>(v->l) != nullptr);
+            assert(dynamic_cast<node*>(v->l) != nullptr);
             v = v->l;
             return *this;
         }
@@ -96,7 +98,7 @@ public:
 
         T const& operator*() const {
             assert(v);
-            node<T>* cur = dynamic_cast<node<T>*>(v);
+            node* cur = dynamic_cast<node*>(v);
             assert(cur);
             return cur->val;
         }
@@ -170,12 +172,12 @@ public:
     // front
     void push_front(T const& val) {
         if (empty()) {
-            node_base* newNode = new node<T>(val);
+            node_base* newNode = new node(val);
             newNode->r = newNode->l = end_;
             end_->l = end_->r = newNode;
         } else {
             node_base* nextNode = end_->r;
-            node_base* newNode = new node<T>(val);
+            node_base* newNode = new node(val);
             nextNode->l = end_->r = newNode;
             newNode->r = nextNode;
             newNode->l = end_;
@@ -223,7 +225,7 @@ public:
 
     iterator insert(const_iterator it, T const& val) {
         if (empty()) {
-            node_base* newNode = new node<T>(val);
+            node_base* newNode = new node(val);
             newNode->r = end_;
             newNode->l = end_;
             end_->r = newNode;
@@ -231,7 +233,7 @@ public:
             return begin();
         }
         node_base* prev = it.v->l, *next = it.v;
-        node_base* newNode = new node<T>(val);
+        node_base* newNode = new node(val);
         newNode->r = next;
         newNode->l = prev;
         prev->r = newNode;
@@ -280,9 +282,10 @@ private:
     node_base* end_;
 };
 
+
 template<typename T>
 void swap(list<T>& a, list<T>& b) {
-    node_base* cur = a.end_;
+    typename list<T>::node_base* cur = a.end_;
     a.end_ = b.end_;
     b.end_ = cur;
 }
@@ -296,31 +299,7 @@ void print(list<T>& l) {
 }
 
 int main() {
-    list<int> x;
-    auto it = x.begin();
-    // asserts
-    //*it;
-    //++it;
-    //--it;
-    //it++;
-    //++it;
-    it = x.end(); // no assert
-    //*it;
-    //++it;
-    //--it;
-    //it++;
-    //++it;
-    list<int>::const_iterator i = x.begin();
-    //*it;
-    //++it;
-    //--it;
-    //it++;
-    //++it;
-    //x.pop_back();
-    //x.pop_front();
-    //x.back();
-    //x.front();
-    //x.erase(x.begin());
+    list<int> x, y;
     return 0;
 }
 
