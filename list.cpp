@@ -30,13 +30,12 @@ public:
     struct iterator {
     public:
         iterator& operator++() {
-            assert(valid);
-            assert(valid && dynamic_cast<node*>(v) != nullptr);
+            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
             v = v->r;
             return *this;
         }
         iterator& operator--() {
-            assert(valid && dynamic_cast<node*>(v->l) != nullptr);
+            assert(parent != nullptr && dynamic_cast<node*>(v->l) != nullptr);
             v = v->l;
             return *this;
         }
@@ -52,16 +51,16 @@ public:
         }
 
         T & operator*() const {
-            assert(valid && dynamic_cast<node*>(v) != nullptr);
+            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
             node* cur = dynamic_cast<node*>(v);
             return cur->val;
         }
         friend bool operator==(const iterator& a, const iterator& b) {
-            assert(a.valid && b.valid);
+            assert(a.parent != nullptr && b.parent != nullptr);
             return a.v == b.v;
         }
         friend bool operator!=(const iterator& a, const iterator& b) {
-            assert(a.valid && b.valid);
+            assert(a.parent != nullptr && b.parent != nullptr);
             return a.v != b.v;
         }
 
@@ -101,12 +100,12 @@ public:
     struct const_iterator {
     public:
         const_iterator& operator++() {
-            assert(valid && dynamic_cast<node*>(v) != nullptr);
+            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
             v = v->r;
             return *this;
         }
         const_iterator& operator--() {
-            assert(valid && dynamic_cast<node*>(v->l) != nullptr);
+            assert(parent != nullptr && dynamic_cast<node*>(v->l) != nullptr);
             v = v->l;
             return *this;
         }
@@ -122,16 +121,16 @@ public:
         }
 
         T const& operator*() const {
-            assert(valid && dynamic_cast<node*>(v) != nullptr);
+            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
             node* cur = dynamic_cast<node*>(v);
             return cur->val;
         }
         friend bool operator==(const const_iterator &a, const const_iterator &b) {
-            assert(a.valid && b.valid);
+            assert(a.parent != nullptr && b.parent != nullptr);
             return a.v == b.v;
         }
         friend bool operator!=(const const_iterator &a, const const_iterator &b) {
-            assert(a.valid && b.valid);
+            assert(a.parent != nullptr && b.parent != nullptr);
             return a.v != b.v;
         }
 
