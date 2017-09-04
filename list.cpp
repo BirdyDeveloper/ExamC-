@@ -1,4 +1,6 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <cassert>
+#include <iostream>
 
 template<typename T>
 struct list {
@@ -30,13 +32,18 @@ public:
     struct iterator {
     public:
         iterator& operator++() {
-            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
+            assert(valid);
+            assert(valid && dynamic_cast<node*>(v) != nullptr);
+            update();
             v = v->r;
+            v->its.push_back(this);
             return *this;
         }
         iterator& operator--() {
-            assert(parent != nullptr && dynamic_cast<node*>(v->l) != nullptr);
+            assert(valid && dynamic_cast<node*>(v->l) != nullptr);
+            update();
             v = v->l;
+            v->its.push_back(this);
             return *this;
         }
         iterator operator++(int) {
@@ -51,16 +58,17 @@ public:
         }
 
         T & operator*() const {
-            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
+            assert(valid && dynamic_cast<node*>(v) != nullptr);
             node* cur = dynamic_cast<node*>(v);
             return cur->val;
         }
         friend bool operator==(const iterator& a, const iterator& b) {
-            assert(a.parent != nullptr && b.parent != nullptr);
+            //std::cout << a.valid << ' ' << b.valid << std::endl;
+            assert(a.valid && b.valid);
             return a.v == b.v;
         }
         friend bool operator!=(const iterator& a, const iterator& b) {
-            assert(a.parent != nullptr && b.parent != nullptr);
+            assert(a.valid && b.valid);
             return a.v != b.v;
         }
 
@@ -70,6 +78,23 @@ public:
         typedef T const & reference;
         typedef std::bidirectional_iterator_tag iterator_category;
         ~iterator() {
+            update();
+        }
+        iterator() : v(nullptr), valid(false), parent(nullptr) {}
+        iterator(const iterator& it) : v(it.v), valid(it.valid), parent(it.parent) {
+            if (valid)
+                v->its.push_back(this);
+        }
+        iterator& operator=(const iterator& it) {
+            update();
+            iterator cur(it);
+            std::swap(v, cur.v);
+            std::swap(valid, cur.valid);
+            std::swap(parent, cur.parent);
+            return *this;
+        }
+    private:
+        void update() {
             if (valid) {
                 std::vector<iterator*> new_its;
                 for (size_t i = 0; i < v->its.size(); ++i)
@@ -78,7 +103,6 @@ public:
                 v->its = new_its;
             }
         }
-    private:
         node_base* v;
         bool valid;
         list<T>* parent;
@@ -100,13 +124,17 @@ public:
     struct const_iterator {
     public:
         const_iterator& operator++() {
-            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
+            assert(valid && dynamic_cast<node*>(v) != nullptr);
+            update();
             v = v->r;
+            v->cits.push_back(this);
             return *this;
         }
         const_iterator& operator--() {
-            assert(parent != nullptr && dynamic_cast<node*>(v->l) != nullptr);
+            assert(valid && dynamic_cast<node*>(v->l) != nullptr);
+            update();
             v = v->l;
+            v->cits.push_back(this);
             return *this;
         }
         const_iterator operator++(int) {
@@ -121,16 +149,16 @@ public:
         }
 
         T const& operator*() const {
-            assert(parent != nullptr && dynamic_cast<node*>(v) != nullptr);
+            assert(valid && dynamic_cast<node*>(v) != nullptr);
             node* cur = dynamic_cast<node*>(v);
             return cur->val;
         }
         friend bool operator==(const const_iterator &a, const const_iterator &b) {
-            assert(a.parent != nullptr && b.parent != nullptr);
+            assert(a.valid && b.valid);
             return a.v == b.v;
         }
         friend bool operator!=(const const_iterator &a, const const_iterator &b) {
-            assert(a.parent != nullptr && b.parent != nullptr);
+            assert(a.valid && b.valid);
             return a.v != b.v;
         }
 
@@ -140,8 +168,29 @@ public:
         typedef T const & reference;
         typedef std::bidirectional_iterator_tag iterator_category;
 
-        const_iterator(iterator it) : v(it.v), valid(it.valid), parent(it.parent) {}
+        const_iterator(iterator it) : v(it.v), valid(it.valid), parent(it.parent) {
+            v->cits.push_back(this);
+        }
         ~const_iterator() {
+            update();
+        }
+        const_iterator() : v(nullptr), valid(false), parent(nullptr) {}
+
+        const_iterator(const const_iterator& cit) : v(cit.v), valid(cit.valid), parent(cit.parent) {
+            if (valid)
+                v->cits.push_back(this);
+        }
+        const_iterator& operator=(const const_iterator& cit) {
+            update();
+            iterator cur(cit);
+            std::swap(v, cur.v);
+            std::swap(valid, cur.valid);
+            std::swap(parent, cur.parent);
+            return *this;
+        }
+
+    private:
+        void update() {
             if (valid) {
                 std::vector<const_iterator*> new_cits;
                 for (size_t i = 0; i < v->cits.size(); ++i)
@@ -150,11 +199,10 @@ public:
                 v->cits = new_cits;
             }
         }
-    private:
         node_base * v;
         bool valid;
-        list<T>* parent;
-        explicit const_iterator(node_base * v) : v(v), valid(true), parent(parent) {
+        const list<T>* parent;
+        explicit const_iterator(node_base * v, const list<T>* parent) : v(v), valid(true), parent(parent) {
             v->cits.push_back(this);
         }
         void invalid() {
@@ -202,14 +250,12 @@ public:
         erase(--end());
     }
     T& back() {
-        iterator it(end_);
-        --it;
-        return *it;
+        assert(!empty());
+        return dynamic_cast<node*>(end_->l)->val;
     }
     T const& back() const {
-        const_iterator it(end_);
-        --it;
-        return *it;
+        assert(!empty());
+        return dynamic_cast<node*>(end_->l)->val;
     }
 
     // front
@@ -230,14 +276,12 @@ public:
         erase(begin());
     }
     T& front() {
-        iterator it(end_, this);
-        ++it;
-        return *it;
+        assert(!empty());
+        return dynamic_cast<node*>(end_->r)->val;
     }
     T const& front() const {
-        const_iterator it(end_, this);
-        ++it;
-        return *it;
+        assert(!empty());
+        return dynamic_cast<node*>(end_->r)->val;
     }
 
     //iterator
@@ -248,10 +292,10 @@ public:
         return iterator(end_, this);
     }
     const_iterator begin() const {
-        return const_iterator(end_->r);
+        return const_iterator(end_->r, this);
     }
     const_iterator end() const {
-        return const_iterator(end_);
+        return const_iterator(end_, this);
     }
     reverse_iterator rbegin() {
         return reverse_iterator(end(), this);
@@ -345,15 +389,87 @@ void print(list<T>& l) {
 }
 
 int main() {
-    list<int> x, y;
-    for (int i = 1; i < 11; ++i)
+    list<int> x;
+    //*
+    list<int>::iterator it, jt = x.begin();
+    //it++;
+    //it--;
+    //++it;
+    //--it;
+    //*it;
+    //it == jt;
+    //it != jt;
+    //jt++;
+    //jt--;
+    //++jt;
+    //--jt;
+    //*jt;
+    std::cout << (jt == jt) << std::endl;
+    std::cout << (jt != jt) << std::endl;
+    for (int i = 0; i < 10; ++i)
         x.push_back(i);
-    for (int i = 11; i < 21; ++i)
-        y.push_back(i);
-    print(x);
-    print(y);
-    x.splice(++++x.begin(), y, ++y.begin(), --y.end());
-    print(x);
-    print(y);
+    for (int i = 0; i < 10; ++i)
+        x.pop_back();
+
+    for (int i = 0; i < 10; ++i)
+        x.push_back(i);
+    for (int i = 0; i < 10; ++i)
+        x.pop_front();
+
+    for (int i = 0; i < 10; ++i)
+        x.push_back(i);
+    for (int i = 0; i < 5; ++i) {
+        x.pop_back();
+        x.pop_front();
+    }
+
+    for (int i = 0; i < 10; ++i)
+        x.push_back(i);
+    for (int i = 0; i < 5; ++i) {
+        x.pop_front();
+        x.pop_back();
+    }
+    
+    for (int i = 0; i < 10; ++i)
+        x.push_front(i);
+    for (int i = 0; i < 10; ++i)
+        x.pop_back();
+
+    for (int i = 0; i < 10; ++i)
+        x.push_front(i);
+    for (int i = 0; i < 10; ++i)
+        x.pop_front();
+
+    for (int i = 0; i < 10; ++i)
+        x.push_front(i);
+    for (int i = 0; i < 5; ++i) {
+        x.pop_back();
+        x.pop_front();
+    }
+
+
+    for (int i = 0; i < 10; ++i)
+        x.push_front(i);
+    for (int i = 0; i < 5; ++i) {
+        x.pop_front();
+        x.pop_back();
+    }
+    for (int i = 0; i < 10; ++i) {
+        x.push_back(i);
+        std::cout << x.back() << ' ';
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < 10; ++i) {
+        x.push_front(i);
+        std::cout << x.front() << ' ';
+    }
+    std::cout << std::endl;
+
+    for (it = x.begin(); it != x.end(); ++it)
+        std::cout << *it << ' ';
+    std::cout << std::endl;
+    while (!x.empty()) {
+        x.pop_front();
+    }
     return 0;
 }
