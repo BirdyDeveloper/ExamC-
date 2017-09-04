@@ -301,7 +301,7 @@ public:
         return const_iterator(end_, this);
     }
     reverse_iterator rbegin() {
-        return reverse_iterator(end(), this);
+        return reverse_iterator(end());
     }
     reverse_iterator rend() {
         return reverse_iterator(begin());
