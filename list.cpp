@@ -35,7 +35,6 @@ public:
     struct iterator {
     public:
         iterator& operator++() {
-            assert(valid);
             assert(valid && dynamic_cast<node*>(v) != nullptr);
             update();
             v = v->r;
@@ -89,11 +88,15 @@ public:
                 v->its.push_back(this);
         }
         iterator& operator=(const iterator& it) {
-            update();
-            iterator cur(it);
-            std::swap(v, cur.v);
-            std::swap(valid, cur.valid);
-            std::swap(parent, cur.parent);
+            if (this != &it) {
+                update();
+                v = it.v;
+                valid = it.valid;
+                parent = it.parent;
+                if (valid) {
+                    v->its.push_back(this);
+                }
+            }
             return *this;
         }
     private:
@@ -110,7 +113,8 @@ public:
         bool valid;
         list<T>* parent;
         explicit iterator(node_base* v, list<T>* parent) : v(v), valid(true), parent(parent) {
-            v->its.push_back(this);
+            if (valid)
+                v->its.push_back(this);
         }
 
         void invalid() {
@@ -172,7 +176,8 @@ public:
         typedef std::bidirectional_iterator_tag iterator_category;
 
         const_iterator(iterator it) : v(it.v), valid(it.valid), parent(it.parent) {
-            v->cits.push_back(this);
+            if (valid)
+                v->cits.push_back(this);
         }
         ~const_iterator() {
             update();
@@ -184,11 +189,15 @@ public:
                 v->cits.push_back(this);
         }
         const_iterator& operator=(const const_iterator& cit) {
-            update();
-            iterator cur(cit);
-            std::swap(v, cur.v);
-            std::swap(valid, cur.valid);
-            std::swap(parent, cur.parent);
+            if (this != &cit) {
+                update();
+                v = cit.v;
+                valid = cit.valid;
+                parent = cit.parent;
+                if (valid) {
+                    v->cits.push_back(this);
+                }
+            }
             return *this;
         }
 
@@ -206,7 +215,8 @@ public:
         bool valid;
         const list<T>* parent;
         explicit const_iterator(node_base * v, const list<T>* parent) : v(v), valid(true), parent(parent) {
-            v->cits.push_back(this);
+            if (valid)
+                v->cits.push_back(this);
         }
         void invalid() {
             valid = false;
@@ -417,7 +427,6 @@ void Alexander_check() {
     auto pit = it;
     it = c.erase(it);
     it = c.erase(c.erase(it));
-    cout << *it << endl;
     c.insert(it, 11);
 //    c.clear();
     list<int> d;
@@ -447,7 +456,7 @@ void Alexander_check() {
     cout << endl;
 }
 
-int main() {
+void Yan_check() {
     list<int> x;
     //*
     list<int>::iterator it, jt = x.begin();
@@ -530,7 +539,10 @@ int main() {
     while (!x.empty()) {
         x.pop_front();
     }
+}
 
+int main() {
+    //Yan_check();
     Alexander_check();
     return 0;
 }
